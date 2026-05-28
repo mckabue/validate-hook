@@ -53,10 +53,15 @@ export function useValidator<TValue, TSchema>(
   const [errors, setErrors] = useState<Record<string, string | undefined>>({});
 
   const onError = useCallback<ErrorReportCallback>((key, message) => {
-    setErrors((prev) => ({
-      ...prev,
-      [key]: message,
-    }));
+    setErrors((prev) => {
+      if (prev[key] === message) {
+        return prev;
+      }
+      return {
+        ...prev,
+        [key]: message,
+      };
+    });
   }, []);
 
   const subscriberRefs = useRef<Record<string, ValidationStateCallback>>({});
