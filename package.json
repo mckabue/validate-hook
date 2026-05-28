@@ -1,6 +1,6 @@
 {
   "name": "@mckabue/react-validate",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A lightweight, flexible, and type-safe React form validation hook with zero dependencies (except React)",
   "keywords": [
     "react",
@@ -27,6 +27,7 @@
   "types": "src/index.ts",
   "files": [
     "src",
+    "!src/__tests__",
     "README.md",
     "LICENSE"
   ],
