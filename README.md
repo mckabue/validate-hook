@@ -54,10 +54,10 @@ Perfect for:
 ### ⚠️ When NOT to Use This
 
 Consider alternatives if you need:
-- **Full form state management** → Use `react-hook-form` or `Formik`
-- **Complex field dependencies** → Use `Final Form` with field-level subscriptions
-- **Server-side validation only** → Use `Remix` form actions or `Next.js` server actions
-- **No validation at all** → Use controlled components with `useState`
+- **Full form state management** => Use `react-hook-form` or `Formik`
+- **Complex field dependencies** => Use `Final Form` with field-level subscriptions
+- **Server-side validation only** => Use `Remix` form actions or `Next.js` server actions
+- **No validation at all** => Use controlled components with `useState`
 
 ---
 
