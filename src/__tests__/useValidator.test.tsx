@@ -1068,22 +1068,28 @@ describe("useValidator", () => {
     it("should handle multiple async validations in parallel", async () => {
       const { result } = renderHook(() => useValidator());
 
+      // Track how many validators are in-flight at once to prove they run
+      // concurrently - deterministic, unlike a flaky wall-clock duration check.
+      let inFlight = 0;
+      let maxInFlight = 0;
+      const track = async (ms: number, value: string): Promise<string> => {
+        inFlight++;
+        maxInFlight = Math.max(maxInFlight, inFlight);
+        await new Promise((resolve) => setTimeout(resolve, ms));
+        inFlight--;
+        return value;
+      };
+
       const Component1 = () =>
         result.current.ValidateWrapper({
-          fn: async () => {
-            await new Promise((resolve) => setTimeout(resolve, 100));
-            return "Error 1";
-          },
+          fn: () => track(100, "Error 1"),
           setValue: () => {},
           children: ({ error }) => <div>{error}</div>,
         });
 
       const Component2 = () =>
         result.current.ValidateWrapper({
-          fn: async () => {
-            await new Promise((resolve) => setTimeout(resolve, 50));
-            return "Error 2";
-          },
+          fn: () => track(50, "Error 2"),
           setValue: () => {},
           children: ({ error }) => <div>{error}</div>,
         });
@@ -1095,15 +1101,13 @@ describe("useValidator", () => {
         </>
       );
 
-      const start = Date.now();
       await act(result.current.validate);
-      const duration = Date.now() - start;
 
       expect(result.current.errors).toHaveLength(2);
       expect(result.current.errors).toContain("Error 1");
       expect(result.current.errors).toContain("Error 2");
-      // Should run in parallel, not sequentially (< 150ms, not 150ms+)
-      expect(duration).toBeLessThan(150);
+      // Both were in-flight simultaneously => ran in parallel, not sequentially.
+      expect(maxInFlight).toBe(2);
     });
 
     it("should handle async validation with setValue updates", async () => {
