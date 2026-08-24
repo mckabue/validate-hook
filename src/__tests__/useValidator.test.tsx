@@ -1140,7 +1140,9 @@ describe("useValidator", () => {
         () => {
           expect(result.current.errors).toEqual([]);
         },
-        { timeout: 100 }
+        // Generous timeout: under load a 30ms async validator can exceed
+        // 100ms wall-clock; waitFor resolves as soon as the condition holds.
+        { timeout: 2000 }
       );
     });
 
