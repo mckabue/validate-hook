@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { useStableRef } from "./useStableRef";
 import type {
   ErrorReportCallback,
   SimpleValidationFn,
@@ -41,19 +42,10 @@ export const useValidationLogic = <TValue, TFactoryValue, TSchema>(
     useStateWithRef<boolean>(false);
   const id = useId();
 
-  // Store props in a ref so validate() always uses the latest validation logic
-  // without needing to recreate callbacks (avoids unnecessary rerenders)
-  const propsRef = useRef(props);
-  useEffect(() => {
-    propsRef.current = props;
-  });
-
-  // Store setFieldValue in a ref to keep setValue stable across renders
-  // (callers often pass inline closures that change every render)
-  const setFieldValueRef = useRef(setFieldValue);
-  useEffect(() => {
-    setFieldValueRef.current = setFieldValue;
-  });
+  // Latest-value refs: validate()/setValue always see the freshest props
+  // without recreating callbacks (avoids unnecessary rerenders)
+  const propsRef = useStableRef(props);
+  const setFieldValueRef = useStableRef(setFieldValue);
 
   const validate = async () => {
     if (canValidateRef.current) {
