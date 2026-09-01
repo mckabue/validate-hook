@@ -66,8 +66,8 @@
     "type-check": "tsc --noEmit",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",
-    "prepublishOnly": "pnpm clean && pnpm build && pnpm test",
-    "preview": "pnpm build:watch"
+    "prepublishOnly": "yarn clean && yarn build && yarn test",
+    "preview": "yarn build:watch"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0"
