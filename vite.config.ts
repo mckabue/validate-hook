@@ -44,8 +44,8 @@ export default defineConfig({
     dts({
       include: ["src/**/*"],
       exclude: ["src/**/*.test.*", "src/**/*.spec.*"],
-      outDir: "dist",
-      rollupTypes: true,
+      outDirs: "dist",
+      bundleTypes: true,
     }),
   ],
 });
