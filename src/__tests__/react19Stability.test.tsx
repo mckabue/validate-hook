@@ -71,7 +71,7 @@ describe("useValidator React 19 stability guards", () => {
         <div>
           <ValidateWrapper fn={z.string().min(3)} setValue={() => {}}>
             {({ error }) => (
-              <FieldWithState error={error as string | undefined} />
+              <FieldWithState error={error} />
             )}
           </ValidateWrapper>
           <button data-testid="rerender" onClick={() => setTick((t) => t + 1)}>
@@ -96,7 +96,7 @@ describe("useValidator React 19 stability guards", () => {
     };
 
     render(<Parent />);
-    const input = screen.getByTestId("input") as HTMLInputElement;
+    const input = screen.getByTestId("input");
     fireEvent.change(input, { target: { value: "edited" } });
     expect(input.value).toBe("edited");
 
@@ -135,7 +135,7 @@ describe("useValidator React 19 stability guards", () => {
     };
 
     render(<Parent />);
-    const input = screen.getByTestId("input") as HTMLInputElement;
+    const input = screen.getByTestId("input");
 
     const before = parentRenders;
     fireEvent.change(input, { target: { value: "abc" } });
