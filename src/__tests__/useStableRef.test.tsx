@@ -1,4 +1,5 @@
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, cleanup, render } from "@testing-library/react";
+import { useEffect } from "react";
 import { useStableRef } from "../useStableRef";
 
 describe("useStableRef", () => {
@@ -20,5 +21,29 @@ describe("useStableRef", () => {
     rerender({ value: "b" });
     act(() => {});
     expect(result.current.current).toBe("b");
+  });
+
+  // A child effect runs before its parent's effect, so the reader below runs
+  // while the parent still has pending effects.
+  it("is fresh for a child effect in the commit where the value appears", () => {
+    const seen: unknown[] = [];
+
+    const Child = ({ read }: { read: () => unknown }) => {
+      useEffect(() => {
+        seen.push(read());
+      }, [read]);
+      return null;
+    };
+
+    const Parent = ({ value }: { value?: string }) => {
+      const ref = useStableRef(value);
+      return value ? <Child read={() => ref.current} /> : null;
+    };
+
+    const { rerender } = render(<Parent />);
+    rerender(<Parent value="v" />);
+    act(() => {});
+    expect(seen).toEqual(["v"]);
+    cleanup();
   });
 });
