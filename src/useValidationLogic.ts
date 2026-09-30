@@ -1,23 +1,23 @@
-import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { useStableRef } from "./useStableRef";
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import { useStableRef } from './useStableRef'
 import type {
   ErrorReportCallback,
   SimpleValidationFn,
   ValidationFactory,
   ValidationResult,
   ValidationStateCallback,
-} from "./types";
+} from './types'
 
 const useStateWithRef = <T>(initialValue: T) => {
-  const [state, _setState] = useState<T>(initialValue);
-  const stateRef = useRef<T>(initialValue);
+  const [state, _setState] = useState<T>(initialValue)
+  const stateRef = useRef<T>(initialValue)
   const setState = useCallback((value: T) => {
-    stateRef.current = value;
-    _setState(value);
-  }, []);
+    stateRef.current = value
+    _setState(value)
+  }, [])
 
-  return [state, setState, stateRef] as const;
-};
+  return [state, setState, stateRef] as const
+}
 
 // Core validation logic hook
 export const useValidationLogic = <TValue, TFactoryValue, TSchema>(
@@ -30,58 +30,58 @@ export const useValidationLogic = <TValue, TFactoryValue, TSchema>(
   props:
     | { fn: SimpleValidationFn<TValue> }
     | {
-        validationFactory: ValidationFactory<TFactoryValue, TSchema>;
-        fn: TSchema;
+        validationFactory: ValidationFactory<TFactoryValue, TSchema>
+        fn: TSchema
       },
 ) => {
-  const [error, setError] = useState<string | undefined>(undefined);
+  const [error, setError] = useState<string | undefined>(undefined)
   const [currentValue, setCurrentValue, currentValueRef] = useStateWithRef<
     TValue | undefined
-  >(externalValue);
+  >(externalValue)
   const [canValidate, setCanValidate, canValidateRef] =
-    useStateWithRef<boolean>(false);
-  const id = useId();
+    useStateWithRef<boolean>(false)
+  const id = useId()
 
   // Latest-value refs: validate()/setValue always see the freshest props
   // without recreating callbacks (avoids unnecessary rerenders)
-  const propsRef = useStableRef(props);
-  const setFieldValueRef = useStableRef(setFieldValue);
+  const propsRef = useStableRef(props)
+  const setFieldValueRef = useStableRef(setFieldValue)
 
   const validate = async () => {
     if (canValidateRef.current) {
       // Use propsRef.current to always access the latest validation logic
       const result: ValidationResult =
-        "validationFactory" in propsRef.current
+        'validationFactory' in propsRef.current
           ? await propsRef.current.validationFactory(
               currentValueRef.current as TFactoryValue,
               propsRef.current.fn,
             )
-          : await propsRef.current.fn(currentValueRef.current);
+          : await propsRef.current.fn(currentValueRef.current)
 
       if (result === true) {
-        setError(undefined);
-        onError(id, undefined);
+        setError(undefined)
+        onError(id, undefined)
       } else {
-        setError(result);
-        onError(id, result);
+        setError(result)
+        onError(id, result)
       }
 
-      return result;
+      return result
     } else {
-      setError(undefined);
-      onError(id, undefined);
+      setError(undefined)
+      onError(id, undefined)
     }
-  };
+  }
 
   const setValue = useCallback(
     (newValue: TValue) => {
-      setFieldValueRef.current(newValue);
-      setCurrentValue(newValue);
-      void validate();
+      setFieldValueRef.current(newValue)
+      setCurrentValue(newValue)
+      void validate()
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [setCurrentValue],
-  );
+  )
 
   // Sync internal value with external value prop
   // Use setCurrentValue (not setValue) to avoid calling setFieldValue back to parent
@@ -89,21 +89,21 @@ export const useValidationLogic = <TValue, TFactoryValue, TSchema>(
   // Only sync when value prop is explicitly provided (hasValueProp)
   useEffect(() => {
     if (hasValueProp) {
-      setCurrentValue(externalValue);
-      void validate();
+      setCurrentValue(externalValue)
+      void validate()
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasValueProp, externalValue, setCurrentValue]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasValueProp, externalValue, setCurrentValue])
 
   useEffect(() => {
     subscribe(id, (_canValidate: boolean) => {
-      setCanValidate(_canValidate);
-      return validate();
-    });
+      setCanValidate(_canValidate)
+      return validate()
+    })
 
     return () => {
-      unsubscribe(id);
-    };
+      unsubscribe(id)
+    }
     /**
      * This should only fire when id, subscribe, unsubscribe changes.
      * This functions is mostly intended to subscribe and unsubscribe.
@@ -111,7 +111,7 @@ export const useValidationLogic = <TValue, TFactoryValue, TSchema>(
      * Current value changing should not fire this, it has its own useEffect!
      */
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, subscribe, unsubscribe]);
+  }, [id, subscribe, unsubscribe])
 
-  return { error, currentValue, canValidate, setValue };
-};
+  return { error, currentValue, canValidate, setValue }
+}

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from 'react'
 
 /**
  * Ref that always holds the latest value.
@@ -9,11 +9,11 @@ import { useLayoutEffect, useRef } from "react";
  * previous value, and a render that never commits cannot leave its value behind.
  */
 export const useStableRef = <T>(value: T) => {
-  const ref = useRef(value);
+  const ref = useRef(value)
   // eslint-disable-next-line react-hooks/refs -- holding this render's value is this hook's contract
-  ref.current = value;
+  ref.current = value
   useLayoutEffect(() => {
-    ref.current = value;
-  });
-  return ref;
-};
+    ref.current = value
+  })
+  return ref
+}

@@ -1,11 +1,11 @@
-import type { ReactNode } from "react";
+import type { ReactNode } from 'react'
 import type {
   FactoryValidateWrapperProps,
   FactoryValidationInternalProps,
   SimpleValidateWrapperProps,
   SimpleValidationInternalProps,
-} from "./types";
-import { useValidationLogic } from "./useValidationLogic";
+} from './types'
+import { useValidationLogic } from './useValidationLogic'
 
 // ============================================================================
 // ValidateWrapper Component
@@ -16,7 +16,7 @@ export const ValidateWrapper = <TValue, TFactoryValue, TSchema>(
     | (SimpleValidateWrapperProps<TValue> &
         SimpleValidationInternalProps<TValue>)
     | (FactoryValidateWrapperProps<TValue, TSchema> &
-        FactoryValidationInternalProps<TFactoryValue, TSchema>)
+        FactoryValidationInternalProps<TFactoryValue, TSchema>),
 ) => {
   const {
     setValue: setFieldValue,
@@ -25,24 +25,32 @@ export const ValidateWrapper = <TValue, TFactoryValue, TSchema>(
     subscribe,
     unsubscribe,
     ...props
-  } = allProps;
+  } = allProps
 
-  const externalValue = "value" in allProps ? allProps.value : undefined;
-  const hasValueProp = "value" in allProps;
+  const externalValue = 'value' in allProps ? allProps.value : undefined
+  const hasValueProp = 'value' in allProps
 
   const { error, currentValue, canValidate, setValue } = useValidationLogic<
     TValue,
     TFactoryValue,
     TSchema
-  >(setFieldValue, externalValue, hasValueProp, onError, subscribe, unsubscribe, props);
+  >(
+    setFieldValue,
+    externalValue,
+    hasValueProp,
+    onError,
+    subscribe,
+    unsubscribe,
+    props,
+  )
 
   // Type-safe rendering based on whether value prop exists
   if (hasValueProp) {
     const childrenWithValue = children as (props: {
-      error: string | undefined;
-      value: TValue;
-      setValue: (value: TValue) => void;
-    }) => ReactNode;
+      error: string | undefined
+      value: TValue
+      setValue: (value: TValue) => void
+    }) => ReactNode
 
     return (
       <>
@@ -52,13 +60,13 @@ export const ValidateWrapper = <TValue, TFactoryValue, TSchema>(
           setValue,
         })}
       </>
-    );
+    )
   }
 
   const childrenWithoutValue = children as (props: {
-    error: string | undefined;
-    setValue: (value: TValue) => void;
-  }) => ReactNode;
+    error: string | undefined
+    setValue: (value: TValue) => void
+  }) => ReactNode
 
   return (
     <>
@@ -67,5 +75,5 @@ export const ValidateWrapper = <TValue, TFactoryValue, TSchema>(
         setValue,
       })}
     </>
-  );
-};
+  )
+}
