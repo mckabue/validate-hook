@@ -558,16 +558,21 @@ Contributions welcome!
 
 ```bash
 # Install dependencies
-yarn install
+npm install
 
 # Run tests
-yarn test
+npm test
 
 # Run tests in watch mode
-yarn run test:watch
+npm run test:watch
+
+# Type-check, lint and format
+npm run type-check
+npm run lint
+npm run format
 
 # Build
-yarn build
+npm run build
 ```
 
 ---
