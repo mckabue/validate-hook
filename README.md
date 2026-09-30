@@ -575,6 +575,21 @@ npm run format
 npm run build
 ```
 
+Verify the exact payload a release would upload, without uploading it:
+
+```bash
+npm pack --dry-run
+```
+
+Publish:
+
+```bash
+npm run clean && npm run build && npm test   # the chain prepublishOnly runs for you
+npm version patch                            # or minor / major
+git push --follow-tags
+npm publish
+```
+
 ---
 
 ## License
