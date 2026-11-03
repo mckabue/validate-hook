@@ -90,11 +90,12 @@ function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    validate();
-    
-    if (errors.length === 0) {
+    // Use the errors that validate() returns: `errors` updates only on the next render.
+    const validationErrors = await validate();
+
+    if (validationErrors.length === 0) {
       // Submit form
     }
   };
@@ -244,7 +245,7 @@ Create a validator with inline validation functions.
 
 **Returns:** `SimpleValidatorReturn`
 - `ValidateWrapper` - Component wrapper for validated fields
-- `validate()` - Trigger validation for all wrapped fields
+- `validate()` - Trigger validation for all wrapped fields. Resolves with the error messages
 - `reset()` - Clear validation state and errors
 - `errors` - Array of current error messages
 
@@ -259,7 +260,7 @@ Create a validator with schema-based validation.
 
 **Returns:** `FactoryValidatorReturn<TSchema>`
 - `ValidateWrapper` - Component wrapper accepting schema in `fn` prop
-- `validate()` - Trigger validation
+- `validate()` - Trigger validation. Resolves with the error messages
 - `reset()` - Clear state
 - `errors` - Current errors
 
@@ -305,10 +306,10 @@ function Wizard() {
   const step2Validator = useValidator();
   const [step, setStep] = useState(1);
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (step === 1) {
-      step1Validator.validate();
-      if (step1Validator.errors.length === 0) setStep(2);
+      const validationErrors = await step1Validator.validate();
+      if (validationErrors.length === 0) setStep(2);
     }
   };
 
@@ -472,13 +473,13 @@ const asyncAdapter = async (data: any, schema: z.ZodType) => {
 const { ValidateWrapper, validate } = useValidator(asyncAdapter);
 
 // All validations complete before validate() resolves
-await validate();
-if (errors.length === 0) {
+const validationErrors = await validate();
+if (validationErrors.length === 0) {
   // Safe to submit
 }
 ```
 
-The `validate()` function returns a Promise that resolves only after all async validations complete, making it safe to check errors immediately after.
+The `validate()` function returns a Promise that resolves only after all async validations complete. It resolves with the error messages, so check that array: the `errors` value updates only on the next render.
 
 ---
 

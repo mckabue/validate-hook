@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
+import { useStableRef } from './useStableRef'
 import { ValidateWrapper } from './ValidateWrapper'
 import type {
   ErrorReportCallback,
@@ -77,6 +78,21 @@ export function useValidator<TValue, TSchema>(
     delete subscriberRefs.current[key]
   }, [])
 
+  // A factory written inside the component is a new function on each render. If the Wrapper below
+  // depended on it, each render would make a new component type, and React would remount each
+  // field (its value and its focus reset). So the Wrapper calls the latest factory through a ref.
+  const validationFactoryRef = useStableRef(validationFactory)
+  const hasValidationFactory = validationFactory !== undefined
+  const stableValidationFactory = useMemo<
+    ValidationFactory<TValue, TSchema> | undefined
+  >(
+    () =>
+      hasValidationFactory
+        ? (value, schema) => validationFactoryRef.current!(value, schema)
+        : undefined,
+    [hasValidationFactory, validationFactoryRef],
+  )
+
   const InnerWrapper = useMemo(() => {
     const Wrapper = <TFieldValue,>(
       props:
@@ -87,7 +103,9 @@ export function useValidator<TValue, TSchema>(
         subscribe,
         unsubscribe,
         onError,
-        ...(validationFactory && { validationFactory }),
+        ...(stableValidationFactory && {
+          validationFactory: stableValidationFactory,
+        }),
         ...props,
       } as
         | (SimpleValidateWrapperProps<TFieldValue> &
@@ -98,7 +116,7 @@ export function useValidator<TValue, TSchema>(
       return <ValidateWrapper {...allProps} />
     }
     return Wrapper
-  }, [onError, subscribe, unsubscribe, validationFactory])
+  }, [onError, subscribe, unsubscribe, stableValidationFactory])
 
   const flattenedErrors = useMemo(
     () =>

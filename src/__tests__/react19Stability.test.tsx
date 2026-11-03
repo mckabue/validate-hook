@@ -7,7 +7,7 @@
  * would show up as a performance cliff or a "Maximum update depth exceeded"
  * crash in React 19.
  */
-import { render, screen, fireEvent } from '@testing-library/react'
+import { act, render, screen, fireEvent } from '@testing-library/react'
 import { useState } from 'react'
 import { useValidator } from '../useValidator'
 import * as z from 'zod'
@@ -106,6 +106,54 @@ describe('useValidator React 19 stability guards', () => {
     }
 
     expect(input.value).toBe('edited')
+  })
+
+  it('keeps each field mounted when the factory is written inline, and uses the latest factory', async () => {
+    let validateForm: () => Promise<string[]> = () => Promise.resolve([])
+
+    const Parent = () => {
+      const [round, setRound] = useState('first')
+      // A new factory function on each render.
+      const { ValidateWrapper, validate } = useValidator(
+        (data: unknown, schema: z.ZodType) => {
+          const result = factory(data, schema)
+          return result === true ? true : `${result} (${round})`
+        },
+      )
+      validateForm = validate
+
+      return (
+        <div>
+          <ValidateWrapper fn={z.string().min(3)} setValue={() => {}}>
+            {() => <input data-testid="input" defaultValue="keep-me" />}
+          </ValidateWrapper>
+          <button data-testid="rerender" onClick={() => setRound('second')}>
+            rerender
+          </button>
+        </div>
+      )
+    }
+
+    render(<Parent />)
+    const input = screen.getByTestId('input')
+    fireEvent.change(input, { target: { value: 'edited' } })
+    input.focus()
+
+    fireEvent.click(screen.getByTestId('rerender'))
+    input.focus()
+    fireEvent.click(screen.getByTestId('rerender'))
+
+    // A remount would put a new input in the document, with the default value and no focus.
+    expect(screen.getByTestId('input')).toBe(input)
+    expect(input.value).toBe('edited')
+    expect(document.activeElement).toBe(input)
+
+    let errors: string[] = []
+    await act(async () => {
+      errors = await validateForm()
+    })
+    expect(errors).toHaveLength(1)
+    expect(errors[0]).toMatch(/\(second\)$/)
   })
 
   it('does not cascade into infinite re-renders in a controlled value flow', () => {

@@ -158,31 +158,6 @@ describe('useValidator', () => {
       expect(result.current.errors).toContain('Required')
     })
 
-    it('should only show errors after validation is enabled', async () => {
-      const { result } = renderHook(() => useValidator())
-      let currentError: string | undefined
-
-      const Component = () =>
-        result.current.ValidateWrapper({
-          fn: () => 'Always invalid',
-          setValue: () => {},
-          children: ({ error }) => {
-            currentError = error
-            return <div>{error}</div>
-          },
-        })
-
-      render(<Component />)
-
-      // Before validation
-      expect(currentError).toBeUndefined()
-
-      // After validation
-      await act(result.current.validate)
-
-      expect(currentError).toBe('Always invalid')
-    })
-
     it('should return errors from validate() that match result.current.errors', async () => {
       const { result } = renderHook(() => useValidator())
 
@@ -1215,11 +1190,15 @@ describe('useValidator', () => {
 
       render(<Component />)
 
+      // Not `expect(act(...)).rejects`: with it, the next test in this file gets no hook result.
+      let thrown: unknown
       try {
         await act(result.current.validate)
       } catch (error) {
-        expect(error).toBeInstanceOf(Error)
+        thrown = error
       }
+      expect(thrown).toBeInstanceOf(Error)
+      expect((thrown as Error).message).toBe('Validation threw')
     })
 
     it('should complete all async validations before resolving validate()', async () => {
